@@ -11,6 +11,9 @@
 		8DD48BEB272C477C0080520A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DD48BEA272C477C0080520A /* ContentView.swift */; };
 		8DD48BED272C477D0080520A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8DD48BEC272C477D0080520A /* Assets.xcassets */; };
 		8DD48BF0272C477D0080520A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8DD48BEF272C477D0080520A /* Preview Assets.xcassets */; };
+		8DD48BF8272C5F4F0080520A /* App in Frameworks */ = {isa = PBXBuildFile; productRef = 8DD48BF7272C5F4F0080520A /* App */; };
+		8DD48BFA272C5F4F0080520A /* BlockchainClientLive in Frameworks */ = {isa = PBXBuildFile; productRef = 8DD48BF9272C5F4F0080520A /* BlockchainClientLive */; };
+		8DD48BFC272C5F4F0080520A /* Environment in Frameworks */ = {isa = PBXBuildFile; productRef = 8DD48BFB272C5F4F0080520A /* Environment */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +29,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8DD48BF8272C5F4F0080520A /* App in Frameworks */,
+				8DD48BFC272C5F4F0080520A /* Environment in Frameworks */,
+				8DD48BFA272C5F4F0080520A /* BlockchainClientLive in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -37,6 +43,7 @@
 			children = (
 				8DD48BE7272C477C0080520A /* ArgentTest */,
 				8DD48BE6272C477C0080520A /* Products */,
+				8DD48BF6272C5F4F0080520A /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -67,6 +74,13 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		8DD48BF6272C5F4F0080520A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -83,6 +97,11 @@
 			dependencies = (
 			);
 			name = ArgentTest;
+			packageProductDependencies = (
+				8DD48BF7272C5F4F0080520A /* App */,
+				8DD48BF9272C5F4F0080520A /* BlockchainClientLive */,
+				8DD48BFB272C5F4F0080520A /* Environment */,
+			);
 			productName = ArgentTest;
 			productReference = 8DD48BE5272C477C0080520A /* ArgentTest.app */;
 			productType = "com.apple.product-type.application";
@@ -341,6 +360,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8DD48BF7272C5F4F0080520A /* App */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = App;
+		};
+		8DD48BF9272C5F4F0080520A /* BlockchainClientLive */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BlockchainClientLive;
+		};
+		8DD48BFB272C5F4F0080520A /* Environment */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Environment;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8DD48BDD272C477C0080520A /* Project object */;
 }
