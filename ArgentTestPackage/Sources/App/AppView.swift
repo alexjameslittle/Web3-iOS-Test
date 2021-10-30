@@ -22,26 +22,39 @@ public struct AppView: View {
     
     public var body: some View {
         NavigationView {
-            CUIWalletView(
-                model: .init(
-                    balanceText: viewStore.balanceToDisplay
-                ),
-                onTapSendEth: {
-                    viewStore.send(.sendTestEther)
-                },
-                onTapViewTransfers: {
-                    
-                }
-            )
-                .onAppear {
-                    viewStore.send(.fetchBalance)
-                }
-                .onChange(of: scenePhase) { phase in
-                    if phase == .active {
+            ZStack {
+                NavigationLink(
+                    tag: AppState.Push.ercTransfers,
+                    selection: viewStore.binding(get: \.push, send: AppAction.hidePush),
+                    destination: {
+                        TransfersView(store: store.scope(state: \.transfers, action: AppAction.transfers))
+                    },
+                    label: { EmptyView() }
+                )
+                
+                CUIWalletView(
+                    model: .init(
+                        balanceText: viewStore.balanceToDisplay
+                    ),
+                    onTapSendEth: {
+                        viewStore.send(.sendTestEther)
+                    },
+                    onTapViewTransfers: {
+                        viewStore.send(.showERC20Transfers)
+                    }
+                )
+                    .onAppear {
                         viewStore.send(.fetchBalance)
                     }
-                }
-                .navigationBarHidden(true)
+                    .onChange(of: scenePhase) { phase in
+                        if phase == .active {
+                            viewStore.send(.fetchBalance)
+                        }
+                    }
+                    
+            }
+            .navigationBarHidden(true)
+            
         }
         
     }

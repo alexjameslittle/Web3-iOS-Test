@@ -8,7 +8,17 @@
 import ComposableArchitecture
 import Environment
 
-public let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, action, environment in
+public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
+    transfersReducer
+        .pullback(
+            state: \.transfers,
+            action: /AppAction.transfers,
+            environment: { $0 }
+        ),
+    appCoreReducer
+)
+
+public let appCoreReducer = Reducer<AppState, AppAction, AppEnvironment> { state, action, environment in
     switch action {
     case .fetchBalance:
         guard !state.isFetchingBalance else { break }
@@ -36,6 +46,14 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, ac
         return .init(value: .fetchBalance)
     case .sendTestEtherResult(.failure(let error)):
         print(error)
+        
+    case .showERC20Transfers:
+        state.push = .ercTransfers
+    case .hidePush:
+        state.push = nil
+        
+    case .transfers:
+        break
     }
     return .none
 }

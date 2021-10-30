@@ -7,15 +7,7 @@
 
 import Foundation
 import ComposableArchitecture
-
-extension RequestEffect {
-    func listenForUnauthenticatedError(handler: @escaping (Self.Failure) -> Bool) -> Self {
-        return self.catch { error -> Self in
-            let isUnauthenticated = handler(error)
-            return isUnauthenticated ? .none : .init(error: error)
-        }.eraseToEffect()
-    }
-}
+import Models
 
 public protocol BlockchainErrorType: Equatable, Swift.Error {
     static func message(_ message: String) -> Self
@@ -34,13 +26,16 @@ public typealias RequestFunction<Request: Requestable> = (Request) -> RequestEff
 public struct BlockchainClient {
     public var fetchBalance: RequestFunction<FetchBalanceRequest>
     public var sendTestEther: RequestFunction<SendTestEtherRequest>
+    public var fetchERC20Transfers: RequestFunction<FetchERC20TransfersRequest>
     
     public init(
         fetchBalance: @escaping RequestFunction<FetchBalanceRequest>,
-        sendTestEther: @escaping RequestFunction<SendTestEtherRequest>
+        sendTestEther: @escaping RequestFunction<SendTestEtherRequest>,
+        fetchERC20Transfers: @escaping RequestFunction<FetchERC20TransfersRequest>
     ) {
         self.fetchBalance = fetchBalance
         self.sendTestEther = sendTestEther
+        self.fetchERC20Transfers = fetchERC20Transfers
     }
         
     public func fetchBalance(
@@ -63,6 +58,16 @@ public struct BlockchainClient {
             .eraseToEffect()
     }
     
+    public func fetchERC20Transfers(
+        _ request: FetchERC20TransfersRequest,
+        on queue: AnySchedulerOf<DispatchQueue>
+    ) -> RequestEffect<FetchERC20TransfersRequest> {
+        Effect(value: request)
+            .subscribe(on: queue)
+            .flatMap { request in self.fetchERC20Transfers(request) }
+            .eraseToEffect()
+    }
+    
     public struct FetchBalanceRequest: Requestable {
         public init() {
         }
@@ -81,6 +86,17 @@ public struct BlockchainClient {
         }
         
         public typealias Response = Bool
+        
+        public enum Error: BlockchainErrorType {
+            case message(_ message: String)
+        }
+    }
+    
+    public struct FetchERC20TransfersRequest: Requestable {
+        public init() {
+        }
+        
+        public typealias Response = [ERC20Transfer]
         
         public enum Error: BlockchainErrorType {
             case message(_ message: String)

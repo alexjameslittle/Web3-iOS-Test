@@ -14,4 +14,10 @@ public enum AppAction: Equatable {
     
     case sendTestEther
     case sendTestEtherResult(BlockchainClient.SendTestEtherRequest.Result)
+    
+    case showERC20Transfers
+    
+    case hidePush
+    
+    case transfers(TransfersAction)
 }

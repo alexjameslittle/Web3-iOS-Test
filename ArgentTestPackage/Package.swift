@@ -26,6 +26,9 @@ let package = Package(
         .library(
                     name: "Environment",
                     targets: ["Environment"]),
+        .library(
+                    name: "Models",
+                    targets: ["Models"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -41,11 +44,13 @@ let package = Package(
             dependencies: [
                 "CatalogUI",
                 "Environment",
+                "Models",
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
             ]),
         .target(
             name: "BlockchainClient",
             dependencies: [
+                "Models",
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
             ]),
         .target(
@@ -57,12 +62,17 @@ let package = Package(
         .target(
             name: "CatalogUI",
             dependencies: [
+                "Models"
             ]),
         .target(
             name: "Environment",
             dependencies: [
                 "BlockchainClient",
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+            ]),
+        .target(
+            name: "Models",
+            dependencies: [
             ]),
         .testTarget(
             name: "ArgentTestPackageTests",

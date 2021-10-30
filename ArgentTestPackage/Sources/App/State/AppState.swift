@@ -8,7 +8,9 @@
 import Foundation
 
 public struct AppState: Equatable {
+    // MARK: - Balance
     var balance: Decimal = 0.0
+    var isFetchingBalance = false
     
     var balanceToDisplay: String {
         let formatter = NumberFormatter()
@@ -21,7 +23,16 @@ public struct AppState: Equatable {
         return "\(formattedValue) ETH"
     }
     
-    var isFetchingBalance = false
+    // MARK: - Transfers
+    
+    var transfers = TransfersState()
+    
+    // MARK: - Navigation
+    
+    enum Push {
+        case ercTransfers
+    }
+    var push: Push?
     
     public init() {
     }

@@ -9,15 +9,17 @@ import Foundation
 import BlockchainClient
 import web3
 import BigInt
+import Models
 
 extension BlockchainClient {
     public static let live = BlockchainClient(
         fetchBalance: BlockchainClientLive.shared.fetchBalance,
-        sendTestEther: BlockchainClientLive.shared.sendTestEther
+        sendTestEther: BlockchainClientLive.shared.sendTestEther,
+        fetchERC20Transfers: BlockchainClientLive.shared.fetchERC20Transactions
     )
 }
 
-class TestEthereumKeyStorage: EthereumKeyStorageProtocol {
+class KeyStorage: EthereumKeyStorageProtocol {
     private var privateKey: String
     
     init(privateKey: String) {
@@ -42,7 +44,7 @@ class BlockchainClientLive {
     let client: EthereumClient
     
     init() throws {
-        let keyStorage = TestEthereumKeyStorage(privateKey: argentWalletPrivateKey)
+        let keyStorage = KeyStorage(privateKey: argentWalletPrivateKey)
         let account = try EthereumAccount(keyStorage: keyStorage)
         self.account = account
         
@@ -96,6 +98,31 @@ class BlockchainClientLive {
             } catch {
                 promise(.failure(.message(error.localizedDescription)))
             }
+        }
+    }
+    
+    func fetchERC20Transactions(_ request: BlockchainClient.FetchERC20TransfersRequest) -> RequestEffect<BlockchainClient.FetchERC20TransfersRequest> {
+        return .future { promise in
+            let erc20Client = ERC20(client: self.client)
+            let wallet = EthereumAddress(self.argentWalletAddress)
+            
+            erc20Client.transferEventsTo(recipient: wallet, fromBlock: .Earliest, toBlock: .Latest) { error, transfers in
+                if let transfers = transfers {
+                    let transfers = transfers.compactMap { transfer -> ERC20Transfer? in
+                        guard let decimal = Decimal(string: String(transfer.value)) else {
+                            return nil
+                        }
+                        return .init(from: transfer.from.value, token: transfer.log.address.value, value: decimal / BlockchainClientLive.etherInWei)
+                    }
+                    
+                    promise(.success(transfers))
+                } else if let error = error {
+                    promise(.failure(.message(error.localizedDescription)))
+                } else {
+                    promise(.failure(.message("Unknown error")))
+                }
+            }
+            
         }
     }
 }
