@@ -8,11 +8,28 @@
 import Foundation
 import BlockchainClient
 import web3
+import BigInt
 
 extension BlockchainClient {
     public static let live = BlockchainClient(
-        fetchBalance: BlockchainClientLive.shared.fetchBalance
+        fetchBalance: BlockchainClientLive.shared.fetchBalance,
+        sendTestEther: BlockchainClientLive.shared.sendTestEther
     )
+}
+
+class TestEthereumKeyStorage: EthereumKeyStorageProtocol {
+    private var privateKey: String
+    
+    init(privateKey: String) {
+        self.privateKey = privateKey
+    }
+    
+    func storePrivateKey(key: Data) throws -> Void {
+    }
+    
+    func loadPrivateKey() throws -> Data {
+        return privateKey.web3.hexData!
+    }
 }
 
 class BlockchainClientLive {
@@ -25,10 +42,11 @@ class BlockchainClientLive {
     let client: EthereumClient
     
     init() throws {
-        let keyStorage = EthereumKeyLocalStorage()
-        try keyStorage.storePrivateKey(key: argentWalletPrivateKey.data(using: .utf8)!)
-        let account = try EthereumAccount.create(keyStorage: keyStorage, keystorePassword: "MY_PASSWORD")
+        let keyStorage = TestEthereumKeyStorage(privateKey: argentWalletPrivateKey)
+        let account = try EthereumAccount(keyStorage: keyStorage)
         self.account = account
+        
+        print("Public address: \(self.account.address.value)")
         
         let clientUrl = URL(string: "https://ropsten.infura.io/v3/735489d9f846491faae7a31e1862d24b")!
         let client = EthereumClient(url: clientUrl)
@@ -39,7 +57,7 @@ class BlockchainClientLive {
     
     func fetchBalance(_ request: BlockchainClient.FetchBalanceRequest) -> RequestEffect<BlockchainClient.FetchBalanceRequest> {
         return .future { promise in
-            self.client.eth_getBalance(address: .init("0x70ABd7F0c9Bdc109b579180B272525880Fb7E0cB"), block: .Latest) { error, balance in
+            self.client.eth_getBalance(address: .init(self.argentWalletAddress), block: .Latest) { error, balance in
                 if let balance = balance, let decimal = Decimal(string: String(balance)) {
                     promise(.success(decimal / BlockchainClientLive.etherInWei))
                 } else if let error = error {
@@ -49,5 +67,61 @@ class BlockchainClientLive {
                 }
             }
         }
+    }
+    
+    func sendTestEther(_ request: BlockchainClient.SendTestEtherRequest) -> RequestEffect<BlockchainClient.SendTestEtherRequest> {
+        return .future { promise in
+            do {
+                let function = TransferToken(
+                    wallet: EthereumAddress(self.argentWalletAddress),
+                    token: EthereumAddress("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"),
+                    to: EthereumAddress("0xD2D77Df1E2E6D1C0ebbBD16e49b4408A43778f56"),
+                    amount: 10000000000000000,
+                    data: Data(),
+                    gasPrice: 12000000000,
+                    gasLimit: 250000
+                )
+                
+                let transaction = try function.transaction()
+                self.client.eth_sendRawTransaction(transaction, withAccount: self.account) { error, txhash in
+                    if let txhash = txhash {
+                        print("transactionHash: \(txhash)")
+                        promise(.success(true))
+                    } else if let error = error {
+                        promise(.failure(.message(error.localizedDescription)))
+                    } else {
+                        promise(.failure(.message("Unknown error")))
+                    }
+                }
+            } catch {
+                promise(.failure(.message(error.localizedDescription)))
+            }
+        }
+    }
+}
+
+
+struct TransferToken: ABIFunction {
+    static let name = "transferToken"
+    let contract = EthereumAddress("0xcdAd167a8A9EAd2DECEdA7c8cC908108b0Cc06D1")
+    var from: EthereumAddress? {
+        return wallet
+    }
+
+    let wallet: EthereumAddress
+    let token: EthereumAddress
+    let to: EthereumAddress
+    let amount: BigUInt
+    let data: Data
+    
+    let gasPrice: BigUInt?
+    let gasLimit: BigUInt?
+    
+    func encode(to encoder: ABIFunctionEncoder) throws {
+        try encoder.encode(wallet)
+        try encoder.encode(token)
+        try encoder.encode(to)
+        try encoder.encode(amount)
+        try encoder.encode(data)
     }
 }

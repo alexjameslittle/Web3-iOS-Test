@@ -11,4 +11,7 @@ import BlockchainClient
 public enum AppAction: Equatable {
     case fetchBalance
     case fetchBalanceResult(BlockchainClient.FetchBalanceRequest.Result)
+    
+    case sendTestEther
+    case sendTestEtherResult(BlockchainClient.SendTestEtherRequest.Result)
 }

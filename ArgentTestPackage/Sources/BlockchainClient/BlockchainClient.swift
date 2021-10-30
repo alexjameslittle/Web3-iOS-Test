@@ -33,10 +33,14 @@ public typealias RequestFunction<Request: Requestable> = (Request) -> RequestEff
 
 public struct BlockchainClient {
     public var fetchBalance: RequestFunction<FetchBalanceRequest>
+    public var sendTestEther: RequestFunction<SendTestEtherRequest>
+    
     public init(
-        fetchBalance: @escaping RequestFunction<FetchBalanceRequest>
+        fetchBalance: @escaping RequestFunction<FetchBalanceRequest>,
+        sendTestEther: @escaping RequestFunction<SendTestEtherRequest>
     ) {
         self.fetchBalance = fetchBalance
+        self.sendTestEther = sendTestEther
     }
         
     public func fetchBalance(
@@ -49,11 +53,34 @@ public struct BlockchainClient {
             .eraseToEffect()
     }
     
+    public func sendTestEther(
+        _ request: SendTestEtherRequest,
+        on queue: AnySchedulerOf<DispatchQueue>
+    ) -> RequestEffect<SendTestEtherRequest> {
+        Effect(value: request)
+            .subscribe(on: queue)
+            .flatMap { request in self.sendTestEther(request) }
+            .eraseToEffect()
+    }
+    
     public struct FetchBalanceRequest: Requestable {
         public init() {
         }
         
         public typealias Response = Decimal
+        
+        public enum Error: BlockchainErrorType {
+            case message(_ message: String)
+        }
+    }
+    
+    public struct SendTestEtherRequest: Requestable {
+        public let recipient: String
+        public init(recipient: String) {
+            self.recipient = recipient
+        }
+        
+        public typealias Response = Bool
         
         public enum Error: BlockchainErrorType {
             case message(_ message: String)

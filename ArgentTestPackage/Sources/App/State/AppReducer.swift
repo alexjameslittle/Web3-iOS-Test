@@ -20,8 +20,21 @@ public let appReducer = Reducer<AppState, AppAction, AppEnvironment> { state, ac
             .receive(on: environment.mainQueue)
             .eraseToEffect()
     case .fetchBalanceResult(.success(let response)):
+        state.isFetchingBalance = false
         state.balance = response
     case .fetchBalanceResult(.failure(let error)):
+        state.isFetchingBalance = false
+        print(error)
+        
+    case .sendTestEther:
+        return environment.blockchainClient.sendTestEther(.init(recipient: "0xD2D77Df1E2E6D1C0ebbBD16e49b4408A43778f56"), on: environment.backgroundQueue)
+            .catchToEffect()
+            .map(AppAction.sendTestEtherResult)
+            .receive(on: environment.mainQueue)
+            .eraseToEffect()
+    case .sendTestEtherResult(.success):
+        return .init(value: .fetchBalance)
+    case .sendTestEtherResult(.failure(let error)):
         print(error)
     }
     return .none

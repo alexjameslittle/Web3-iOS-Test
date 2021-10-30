@@ -27,7 +27,7 @@ public struct AppView: View {
                     balanceText: viewStore.balanceToDisplay
                 ),
                 onTapSendEth: {
-                    
+                    viewStore.send(.sendTestEther)
                 },
                 onTapViewTransfers: {
                     
